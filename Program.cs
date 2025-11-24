@@ -19,7 +19,7 @@ builder.Services.AddScoped<ArtistService>();
 builder.Services.Configure<SpotifySettings>(builder.Configuration.GetSection("Spotify"));
 
 //CORS
-var frontendUrl = builder.Configuration["FrontendUrl"] ?? "http://localhost:5173";
+var frontendUrl = builder.Configuration["frontendUrl"] ?? "http://localhost:5173";
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
