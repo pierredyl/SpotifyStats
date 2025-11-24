@@ -29,13 +29,10 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(frontendUrl, "http://localhost:5173", "http://127.0.0.1:5173")
               .AllowAnyHeader()
-              .AllowAnyMethod();
-        // policy.WithOrigins(frontendUrl, "http://localhost:5173", "http://127.0.0.1:5173")
-        //       .AllowAnyHeader()
-        //       .AllowAnyMethod()
-        //       .AllowCredentials();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
