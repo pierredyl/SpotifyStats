@@ -23,16 +23,14 @@ namespace SpotifyListeningTracker.Controllers
         }
 
         [HttpGet("login")]
-        public async Task<IActionResult> Login()
+        public IActionResult Login()
         {
-            // Authorization URL
-            var loginRequest = new LoginRequest(
-                new Uri(_spotifySettings.RedirectUri),
-                _spotifySettings.ClientId,
-                LoginRequest.ResponseType.Code
-            )
+            // Return configuration for frontend to handle OAuth
+            return Ok(new
             {
-                Scope = new[]
+                clientId = _spotifySettings.ClientId,
+                redirectUri = _spotifySettings.RedirectUri,
+                scopes = new[]
                 {
                     Scopes.UserReadPrivate,
                     Scopes.UserReadEmail,
@@ -41,18 +39,15 @@ namespace SpotifyListeningTracker.Controllers
                     Scopes.UserTopRead,
                     Scopes.UserLibraryRead,
                 }
-            };
-
-            var uri = loginRequest.ToUri();
-            return Ok(new { authUrl = uri.ToString() });
+            });
         }
 
-        [HttpGet("callback")]
-        public async Task<IActionResult> Callback([FromQuery] string code, [FromQuery] string? error)
+        [HttpPost("token")]
+        public async Task<IActionResult> ExchangeToken([FromBody] TokenExchangeRequest request)
         {
-            if (!string.IsNullOrEmpty(error))
+            if (string.IsNullOrEmpty(request.Code))
             {
-                return BadRequest(new { error });
+                return BadRequest(new { error = "Code is required" });
             }
 
             try
@@ -62,14 +57,14 @@ namespace SpotifyListeningTracker.Controllers
                     new AuthorizationCodeTokenRequest(
                         _spotifySettings.ClientId,
                         _spotifySettings.ClientSecret,
-                        code,
+                        request.Code,
                         new Uri(_spotifySettings.RedirectUri)
                     )
                 );
 
                 if (string.IsNullOrEmpty(tokenResponse.AccessToken))
                 {
-                    return Redirect($"{_frontendUrl}/?error=token_exchange_failed");
+                    return BadRequest(new { error = "token_exchange_failed" });
                 }
 
                 // Set tokens in HTTP-only cookies
@@ -94,12 +89,17 @@ namespace SpotifyListeningTracker.Controllers
                     });
                 }
 
-                return Redirect($"{_frontendUrl}/dashboard");
+                return Ok(new { success = true });
             }
             catch (Exception ex)
             {
-                return Redirect($"{_frontendUrl}/?error={Uri.EscapeDataString(ex.Message)}");
+                return BadRequest(new { error = ex.Message });
             }
+        }
+
+        public class TokenExchangeRequest
+        {
+            public string Code { get; set; } = string.Empty;
         }
 
         [HttpGet("refresh")]
