@@ -35,15 +35,10 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configure port
-var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+// Configure port (only for local development)
 if (builder.Environment.IsDevelopment())
 {
     builder.WebHost.UseUrls("http://127.0.0.1:5000");
-}
-else
-{
-    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 }
 
 var app = builder.Build();
