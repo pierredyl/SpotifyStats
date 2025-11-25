@@ -1,7 +1,16 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using SpotifyListeningTracker.Models;
 using SpotifyListeningTracker.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure forwarded headers for Azure
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // Add services to the container.
 builder.Services.AddControllers();
@@ -42,6 +51,9 @@ if (builder.Environment.IsDevelopment())
 }
 
 var app = builder.Build();
+
+// Use forwarded headers (must be before other middleware)
+app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
