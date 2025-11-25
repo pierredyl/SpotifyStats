@@ -32,7 +32,10 @@ function Home() {
         .then((res) => res.json())
         .then((data) => {
           if (data.success) {
-            window.location.href = "/dashboard";
+            // Small delay to ensure cookies are set before redirect
+            setTimeout(() => {
+              window.location.href = "/dashboard";
+            }, 100);
           } else {
             alert(`Token exchange failed: ${data.error}`);
           }
