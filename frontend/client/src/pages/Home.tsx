@@ -1,9 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import "../App.css";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
 
 function Home() {
+  const exchangingCode = useRef(false);
+
   useEffect(() => {
     // Handle OAuth callback
     const urlParams = new URLSearchParams(window.location.search);
@@ -18,7 +20,8 @@ function Home() {
       return;
     }
 
-    if (code) {
+    if (code && !exchangingCode.current) {
+      exchangingCode.current = true;
       // Exchange code for tokens
       fetch(`${API_URL}/api/auth/token`, {
         method: "POST",
@@ -40,7 +43,11 @@ function Home() {
         })
         .finally(() => {
           // Clean URL
-          window.history.replaceState({}, document.title, window.location.pathname);
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
         });
     }
   }, []);

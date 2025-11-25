@@ -12,14 +12,15 @@ namespace SpotifyListeningTracker.Controllers
     {
         private readonly SpotifySettings _spotifySettings;
         private readonly string _frontendUrl;
-        private static EmbedIOAuthServer? _server;
+        private readonly bool _isDevelopment;
 
-        public AuthController(IOptions<SpotifySettings> spotifySettings, IConfiguration configuration)
+        public AuthController(IOptions<SpotifySettings> spotifySettings, IConfiguration configuration, IWebHostEnvironment env)
         {
             _spotifySettings = spotifySettings.Value;
             _frontendUrl = Environment.GetEnvironmentVariable("frontendUrl")
                 ?? configuration["frontendUrl"]
-                ?? "http://localhost:5173";
+                ?? "http://127.0.0.1:5173";
+            _isDevelopment = env.IsDevelopment();
         }
 
         [HttpGet("login")]
@@ -52,27 +53,25 @@ namespace SpotifyListeningTracker.Controllers
 
             try
             {
-                // Exchange code for access token
-                var tokenResponse = await new OAuthClient().RequestToken(
-                    new AuthorizationCodeTokenRequest(
-                        _spotifySettings.ClientId,
-                        _spotifySettings.ClientSecret,
-                        request.Code,
-                        new Uri(_spotifySettings.RedirectUri)
-                    )
-                );
 
-                if (string.IsNullOrEmpty(tokenResponse.AccessToken))
-                {
-                    return BadRequest(new { error = "token_exchange_failed" });
-                }
+                // Create the request object
+                var tokenRequest = new AuthorizationCodeTokenRequest(
+                    _spotifySettings.ClientId,
+                    _spotifySettings.ClientSecret,
+                    request.Code,
+                    new Uri(_spotifySettings.RedirectUri)
+                );
+                // Exchange code for access token
+                var tokenResponse = await new OAuthClient().RequestToken(tokenRequest);
 
                 // Set tokens in HTTP-only cookies
+                // In development (HTTP), use Secure=false and SameSite=Lax
+                // In production (HTTPS), use Secure=true and SameSite=None for cross-origin
                 Response.Cookies.Append("access_token", tokenResponse.AccessToken, new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.None, // Required for cross-origin
+                    Secure = !_isDevelopment,
+                    SameSite = _isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
                     Expires = DateTimeOffset.UtcNow.AddSeconds(tokenResponse.ExpiresIn),
                     Path = "/"
                 });
@@ -82,8 +81,8 @@ namespace SpotifyListeningTracker.Controllers
                     Response.Cookies.Append("refresh_token", tokenResponse.RefreshToken, new CookieOptions
                     {
                         HttpOnly = true,
-                        Secure = true,
-                        SameSite = SameSiteMode.None,
+                        Secure = !_isDevelopment,
+                        SameSite = _isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
                         Expires = DateTimeOffset.UtcNow.AddDays(30),
                         Path = "/"
                     });
