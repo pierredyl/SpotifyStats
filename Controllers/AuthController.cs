@@ -11,11 +11,15 @@ namespace SpotifyListeningTracker.Controllers
     public class AuthController : ControllerBase
     {
         private readonly SpotifySettings _spotifySettings;
+        private readonly string _frontendUrl;
         private static EmbedIOAuthServer? _server;
 
-        public AuthController(IOptions<SpotifySettings> spotifySettings)
+        public AuthController(IOptions<SpotifySettings> spotifySettings, IConfiguration configuration)
         {
             _spotifySettings = spotifySettings.Value;
+            _frontendUrl = Environment.GetEnvironmentVariable("frontendUrl")
+                ?? configuration["frontendUrl"]
+                ?? "http://localhost:5173";
         }
 
         [HttpGet("login")]
@@ -65,7 +69,7 @@ namespace SpotifyListeningTracker.Controllers
 
                 if (string.IsNullOrEmpty(tokenResponse.AccessToken))
                 {
-                    return Redirect("http://localhost:5173/?error=token_exchange_failed");
+                    return Redirect($"{_frontendUrl}/?error=token_exchange_failed");
                 }
 
                 // Set tokens in HTTP-only cookies
@@ -90,11 +94,11 @@ namespace SpotifyListeningTracker.Controllers
                     });
                 }
 
-                return Redirect("http://localhost:5173/dashboard");
+                return Redirect($"{_frontendUrl}/dashboard");
             }
             catch (Exception ex)
             {
-                return Redirect($"http://localhost:5173/?error={Uri.EscapeDataString(ex.Message)}");
+                return Redirect($"{_frontendUrl}/?error={Uri.EscapeDataString(ex.Message)}");
             }
         }
 
