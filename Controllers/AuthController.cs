@@ -64,18 +64,22 @@ namespace SpotifyListeningTracker.Controllers
                 // Exchange code for access token
                 var tokenResponse = await new OAuthClient().RequestToken(tokenRequest);
 
+                // Determine if we're on HTTPS (more reliable than environment check)
+                var isHttps = Request.IsHttps || Request.Headers["X-Forwarded-Proto"] == "https";
+
                 // Log environment and cookie settings
-                Console.WriteLine($"[COOKIE] Environment - IsDevelopment: {_isDevelopment}");
-                Console.WriteLine($"[COOKIE] Setting cookies with Secure={!_isDevelopment}, SameSite={(_isDevelopment ? "Lax" : "None")}");
+                Console.WriteLine($"[COOKIE] IsDevelopment: {_isDevelopment}, IsHttps: {isHttps}");
+                Console.WriteLine($"[COOKIE] Request Scheme: {Request.Scheme}");
+                Console.WriteLine($"[COOKIE] Setting cookies with Secure={isHttps}, SameSite={(isHttps ? "None" : "Lax")}");
 
                 // Set tokens in HTTP-only cookies
-                // Development: SameSite=Lax (Vite proxy makes it same-origin)
-                // Production: SameSite=None + Secure=true (cross-origin with HTTPS)
+                // HTTP (dev): SameSite=Lax (works with Vite proxy, same-origin)
+                // HTTPS (prod): SameSite=None + Secure=true (cross-origin)
                 Response.Cookies.Append("access_token", tokenResponse.AccessToken, new CookieOptions
                 {
                     HttpOnly = true,
-                    Secure = !_isDevelopment,
-                    SameSite = _isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
+                    Secure = isHttps,
+                    SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax,
                     Expires = DateTimeOffset.UtcNow.AddSeconds(tokenResponse.ExpiresIn),
                     Path = "/"
                 });
@@ -85,8 +89,8 @@ namespace SpotifyListeningTracker.Controllers
                     Response.Cookies.Append("refresh_token", tokenResponse.RefreshToken, new CookieOptions
                     {
                         HttpOnly = true,
-                        Secure = !_isDevelopment,
-                        SameSite = _isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
+                        Secure = isHttps,
+                        SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax,
                         Expires = DateTimeOffset.UtcNow.AddDays(30),
                         Path = "/"
                     });
