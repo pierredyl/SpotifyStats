@@ -55,7 +55,7 @@ interface ComparisonResult {
   genreSimilarityPercent: number;
 }
 
-const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:5000";
+const API_URL = import.meta.env.VITE_API_URL || "";
 
 function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
