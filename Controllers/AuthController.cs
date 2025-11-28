@@ -64,17 +64,12 @@ namespace SpotifyListeningTracker.Controllers
                 // Exchange code for access token
                 var tokenResponse = await new OAuthClient().RequestToken(tokenRequest);
 
-                // Determine if we're on HTTPS (more reliable than environment check)
+                // Determine if we're on HTTPS
                 var isHttps = Request.IsHttps || Request.Headers["X-Forwarded-Proto"] == "https";
 
-                // Log environment and cookie settings
-                Console.WriteLine($"[COOKIE] IsDevelopment: {_isDevelopment}, IsHttps: {isHttps}");
-                Console.WriteLine($"[COOKIE] Request Scheme: {Request.Scheme}");
-                Console.WriteLine($"[COOKIE] Setting cookies with Secure={isHttps}, SameSite={(isHttps ? "None" : "Lax")}");
-
                 // Set tokens in HTTP-only cookies
-                // HTTP (dev): SameSite=Lax (works with Vite proxy, same-origin)
-                // HTTPS (prod): SameSite=None + Secure=true (cross-origin)
+                // With Vercel proxy, all requests appear same-origin to browser
+                // Use SameSite=None for cross-origin (Vercel->Azure) compatibility
                 Response.Cookies.Append("access_token", tokenResponse.AccessToken, new CookieOptions
                 {
                     HttpOnly = true,
