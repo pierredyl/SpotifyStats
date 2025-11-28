@@ -6,6 +6,10 @@ A full-stack web application that tracks and analyzes your Spotify listening hab
 ![React](https://img.shields.io/badge/React-19-61dafb)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue)
 
+## 🚀 Live Demo
+
+**[https://spotify-stats-pink-rho.vercel.app/](https://spotify-stats-pink-rho.vercel.app/)**
+
 ## Features
 
 - 🎵 **Top Tracks & Artists** - View your most listened to tracks and artists (6-month period)
@@ -17,17 +21,20 @@ A full-stack web application that tracks and analyzes your Spotify listening hab
 ## Tech Stack
 
 ### Backend
+
 - **ASP.NET Core 10.0** - Web API framework
 - **SpotifyAPI.Web** - Official Spotify Web API wrapper
 - **C# 13** - Modern language features
 
 ### Frontend
+
 - **React 19** - UI framework
 - **TypeScript 5.6** - Type-safe JavaScript
 - **Vite** - Lightning-fast build tool
 - **React Router** - Client-side routing
 
 ### Deployment
+
 - **Backend**: Azure App Service
 - **Frontend**: Vercel
 - **Proxy Setup**: Vercel rewrites for cross-origin cookie support
@@ -68,15 +75,15 @@ SpotifyListeningTracker/
 
 ## Available Endpoints
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/auth/login` | Get OAuth configuration |
-| POST | `/api/auth/token` | Exchange authorization code for tokens |
-| GET | `/api/user/me` | Get current user profile |
-| GET | `/api/track/top` | Get top tracks (6 months) |
-| GET | `/api/artist/top` | Get top artists (6 months) |
-| GET | `/api/playlist` | Get user's playlists |
-| GET | `/api/playlist/compare` | Compare two playlists |
+| Method | Endpoint                | Description                            |
+| ------ | ----------------------- | -------------------------------------- |
+| GET    | `/api/auth/login`       | Get OAuth configuration                |
+| POST   | `/api/auth/token`       | Exchange authorization code for tokens |
+| GET    | `/api/user/me`          | Get current user profile               |
+| GET    | `/api/track/top`        | Get top tracks (6 months)              |
+| GET    | `/api/artist/top`       | Get top artists (6 months)             |
+| GET    | `/api/playlist`         | Get user's playlists                   |
+| GET    | `/api/playlist/compare` | Compare two playlists                  |
 
 ## Authentication Flow
 
@@ -110,7 +117,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [SpotifyAPI.Web](https://github.com/JohnnyCrazy/SpotifyAPI-NET) - Excellent C# wrapper for Spotify API
 - [React](https://react.dev/) - Frontend framework
 - [Vite](https://vitejs.dev/) - Build tool
-
----
-
-**Built with ❤️ using Spotify Web API**
