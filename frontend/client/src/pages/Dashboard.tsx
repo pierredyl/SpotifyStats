@@ -67,7 +67,8 @@ function Dashboard() {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState("");
   const [comparePlaylistUrl, setComparePlaylistUrl] = useState("");
-  const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
+  const [comparisonResult, setComparisonResult] =
+    useState<ComparisonResult | null>(null);
   const [comparing, setComparing] = useState(false);
 
   const extractPlaylistId = (url: string): string | null => {
@@ -109,56 +110,45 @@ function Dashboard() {
   };
 
   useEffect(() => {
-    // Fetch user data (cookies sent automatically)
-    fetch(`${API_URL}/api/user/me`, {
-      credentials: "include",
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch user");
-        return res.json();
-      })
-      .then((data) => {
-        setUser(data);
-        // Fetch top tracks
-        return fetch(`${API_URL}/api/track/top`, {
-          credentials: "include",
-        });
-      })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch top tracks");
-        return res.json();
-      })
-      .then((data) => {
-        setTopTracks(data || []);
-        // Fetch top artists
-        return fetch(`${API_URL}/api/artist/top`, {
-          credentials: "include",
-        });
-      })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch top artists");
-        return res.json();
-      })
-      .then((data) => {
-        setTopArtists(data || []);
-        // Fetch playlists
-        return fetch(`${API_URL}/api/playlist`, {
-          credentials: "include",
-        });
-      })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch playlists");
-        return res.json();
-      })
-      .then((data) => {
-        setPlaylists(data || []);
+    async function loadDashboardData() {
+      try {
+        const [userRes, tracksRes, artistsRes, playlistsRes] =
+          await Promise.all([
+            fetch(`${API_URL}/api/user/me`, { credentials: "include" }),
+            fetch(`${API_URL}/api/track/top`, { credentials: "include" }),
+            fetch(`${API_URL}/api/artist/top`, { credentials: "include" }),
+            fetch(`${API_URL}/api/playlist`, { credentials: "include" }),
+          ]);
+
+        if (
+          !userRes.ok ||
+          !tracksRes.ok ||
+          !artistsRes.ok ||
+          !playlistsRes.ok
+        ) {
+          throw new Error("Failed to fetch dashboard data");
+        }
+
+        const [userData, tracksData, artistsData, playlistsData] =
+          await Promise.all([
+            userRes.json(),
+            tracksRes.json(),
+            artistsRes.json(),
+            playlistsRes.json(),
+          ]);
+
+        setUser(userData);
+        setTopTracks(tracksData || []);
+        setTopArtists(artistsData || []);
+        setPlaylists(playlistsData || []);
         setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        // Redirect to unauthorized page if auth fails
+      } catch (error) {
+        console.error("Dashboard loading error:", error);
         window.location.href = "/unauthorized";
-      });
+      }
+    }
+
+    loadDashboardData();
   }, []);
 
   if (loading) {
@@ -224,7 +214,9 @@ function Dashboard() {
                   />
                   <div className="track-info">
                     <p className="track-name">{artist.name}</p>
-                    <p className="track-artist">{artist.genres.slice(0, 3).join(", ")}</p>
+                    <p className="track-artist">
+                      {artist.genres.slice(0, 3).join(", ")}
+                    </p>
                   </div>
                 </div>
               ))}
@@ -286,34 +278,58 @@ function Dashboard() {
                 <div className="results-grid">
                   <div className="result-item">
                     <span className="result-label">Your Playlist</span>
-                    <span className="result-value">{comparisonResult.playlist1.trackCount} tracks</span>
-                    <span className="result-sub">{formatDuration(comparisonResult.playlist1.totalDurationMs)}</span>
+                    <span className="result-value">
+                      {comparisonResult.playlist1.trackCount} tracks
+                    </span>
+                    <span className="result-sub">
+                      {formatDuration(
+                        comparisonResult.playlist1.totalDurationMs
+                      )}
+                    </span>
                   </div>
 
                   <div className="result-item">
                     <span className="result-label">Compare Playlist</span>
-                    <span className="result-value">{comparisonResult.playlist2.trackCount} tracks</span>
-                    <span className="result-sub">{formatDuration(comparisonResult.playlist2.totalDurationMs)}</span>
+                    <span className="result-value">
+                      {comparisonResult.playlist2.trackCount} tracks
+                    </span>
+                    <span className="result-sub">
+                      {formatDuration(
+                        comparisonResult.playlist2.totalDurationMs
+                      )}
+                    </span>
                   </div>
                 </div>
 
                 <div className="similarity-section">
                   <div className="similarity-item">
                     <span className="similarity-label">Track Similarity</span>
-                    <span className="similarity-value">{comparisonResult.trackSimilarityPercent}%</span>
-                    <span className="similarity-detail">{comparisonResult.commonTrackCount} common tracks</span>
+                    <span className="similarity-value">
+                      {comparisonResult.trackSimilarityPercent}%
+                    </span>
+                    <span className="similarity-detail">
+                      {comparisonResult.commonTrackCount} common tracks
+                    </span>
                   </div>
 
                   <div className="similarity-item">
                     <span className="similarity-label">Artist Similarity</span>
-                    <span className="similarity-value">{comparisonResult.artistSimilarityPercent}%</span>
-                    <span className="similarity-detail">{comparisonResult.commonArtistCount} common artists</span>
+                    <span className="similarity-value">
+                      {comparisonResult.artistSimilarityPercent}%
+                    </span>
+                    <span className="similarity-detail">
+                      {comparisonResult.commonArtistCount} common artists
+                    </span>
                   </div>
 
                   <div className="similarity-item">
                     <span className="similarity-label">Genre Similarity</span>
-                    <span className="similarity-value">{comparisonResult.genreSimilarityPercent}%</span>
-                    <span className="similarity-detail">{comparisonResult.commonGenreCount} common genres</span>
+                    <span className="similarity-value">
+                      {comparisonResult.genreSimilarityPercent}%
+                    </span>
+                    <span className="similarity-detail">
+                      {comparisonResult.commonGenreCount} common genres
+                    </span>
                   </div>
                 </div>
               </div>

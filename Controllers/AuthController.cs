@@ -12,7 +12,6 @@ namespace SpotifyListeningTracker.Controllers
     {
         private readonly SpotifySettings _spotifySettings;
         private readonly string _frontendUrl;
-        private readonly bool _isDevelopment;
 
         public AuthController(IOptions<SpotifySettings> spotifySettings, IConfiguration configuration, IWebHostEnvironment env)
         {
@@ -20,7 +19,6 @@ namespace SpotifyListeningTracker.Controllers
             _frontendUrl = Environment.GetEnvironmentVariable("frontendUrl")
                 ?? configuration["frontendUrl"]
                 ?? "http://127.0.0.1:5173";
-            _isDevelopment = env.IsDevelopment();
         }
 
         [HttpGet("login")]
