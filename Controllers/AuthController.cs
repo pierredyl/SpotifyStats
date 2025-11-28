@@ -64,6 +64,10 @@ namespace SpotifyListeningTracker.Controllers
                 // Exchange code for access token
                 var tokenResponse = await new OAuthClient().RequestToken(tokenRequest);
 
+                // Log environment and cookie settings
+                Console.WriteLine($"[COOKIE] Environment - IsDevelopment: {_isDevelopment}");
+                Console.WriteLine($"[COOKIE] Setting cookies with Secure={!_isDevelopment}, SameSite={(_isDevelopment ? "Lax" : "None")}");
+
                 // Set tokens in HTTP-only cookies
                 // Development: SameSite=Lax (Vite proxy makes it same-origin)
                 // Production: SameSite=None + Secure=true (cross-origin with HTTPS)
