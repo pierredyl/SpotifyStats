@@ -156,12 +156,8 @@ function Dashboard() {
       })
       .catch((error) => {
         console.error("Error:", error);
-        // Redirect to login if auth fails
-        if (error.message.includes("user")) {
-          window.location.href = "/";
-        } else {
-          setLoading(false);
-        }
+        // Redirect to unauthorized page if auth fails
+        window.location.href = "/unauthorized";
       });
   }, []);
 

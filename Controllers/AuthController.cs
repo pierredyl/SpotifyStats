@@ -65,13 +65,13 @@ namespace SpotifyListeningTracker.Controllers
                 var tokenResponse = await new OAuthClient().RequestToken(tokenRequest);
 
                 // Set tokens in HTTP-only cookies
-                // In development: SameSite=None with Secure=false (allows cross-origin in dev)
-                // In production: SameSite=None with Secure=true (HTTPS required)
+                // Development: SameSite=Lax (Vite proxy makes it same-origin)
+                // Production: SameSite=None + Secure=true (cross-origin with HTTPS)
                 Response.Cookies.Append("access_token", tokenResponse.AccessToken, new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = !_isDevelopment,
-                    SameSite = SameSiteMode.None,
+                    SameSite = _isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
                     Expires = DateTimeOffset.UtcNow.AddSeconds(tokenResponse.ExpiresIn),
                     Path = "/"
                 });
@@ -82,7 +82,7 @@ namespace SpotifyListeningTracker.Controllers
                     {
                         HttpOnly = true,
                         Secure = !_isDevelopment,
-                        SameSite = SameSiteMode.None,
+                        SameSite = _isDevelopment ? SameSiteMode.Lax : SameSiteMode.None,
                         Expires = DateTimeOffset.UtcNow.AddDays(30),
                         Path = "/"
                     });
